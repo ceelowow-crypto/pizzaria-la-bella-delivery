@@ -1514,15 +1514,38 @@ function CheckoutPage({ cart, onBack, onConfirm }) {
 
 function PixPage({ total, customerData, cart, onBack }) {
   const [copied, setCopied] = useState(false)
-  const [timeLeft, setTimeLeft] = useState(15 * 60)
-  const [pixData, setPixData] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const [pixData, setPixData] = useState(() => loadSession('lb_pixData', null))
+  const [loading, setLoading] = useState(() => !loadSession('lb_pixData', null))
   const [error, setError] = useState(null)
-  const [paymentStatus, setPaymentStatus] = useState('PENDING') // PENDING | COMPLETED
+  const [paymentStatus, setPaymentStatus] = useState(() => loadSession('lb_paymentStatus', 'PENDING'))
   const pollingRef = useRef(null)
   const [showExitModal, setShowExitModal] = useState(false)
-  const [discountApplied, setDiscountApplied] = useState(false)
-  const discountedTotal = discountApplied ? total * 0.95 : total
+  const [discountApplied, setDiscountApplied] = useState(() => loadSession('lb_discountApplied', false))
+  const [creatingDiscount, setCreatingDiscount] = useState(false)
+  const discountedTotal = discountApplied ? +(total * 0.95).toFixed(2) : total
+  const activeTotal = discountApplied ? discountedTotal : total
+
+  // Timer: restore remaining time from session or start fresh
+  const [timeLeft, setTimeLeft] = useState(() => {
+    const savedExpiry = loadSession('lb_pixExpiry', null)
+    if (savedExpiry) {
+      const remaining = Math.max(0, Math.floor((savedExpiry - Date.now()) / 1000))
+      return remaining
+    }
+    return 15 * 60
+  })
+
+  // Save expiry timestamp on first render
+  useEffect(() => {
+    if (!loadSession('lb_pixExpiry', null)) {
+      saveSession('lb_pixExpiry', Date.now() + 15 * 60 * 1000)
+    }
+  }, [])
+
+  // Persist pixData and status
+  useEffect(() => { saveSession('lb_pixData', pixData) }, [pixData])
+  useEffect(() => { saveSession('lb_paymentStatus', paymentStatus) }, [paymentStatus])
+  useEffect(() => { saveSession('lb_discountApplied', discountApplied) }, [discountApplied])
 
   // Prevent accidental page close/refresh
   useEffect(() => {
@@ -1539,42 +1562,56 @@ function PixPage({ total, customerData, cart, onBack }) {
   // Fallback PIX code for demo/when API is not available
   const fallbackPixCode =
     '00020126580014br.gov.bcb.pix0136a1b2c3d4-e5f6-7890-abcd-ef1234567890520400005303986540' +
-    total.toFixed(2) +
+    activeTotal.toFixed(2) +
     '5802BR5925PIZZARIA LA BELLA LTDA6009SAO PAULO62070503***6304'
 
-  // Create PIX payment on mount
+  // Helper to create a PIX payment
+  async function createPix(amount) {
+    const orderId = generateOrderId()
+    const products = cart.map((item) => ({
+      id: String(item.id),
+      name: item.name,
+      quantity: item.qty,
+      price: item.unitPrice,
+    }))
+
+    return await createPixPayment({
+      identifier: orderId,
+      amount,
+      client: {
+        name: customerData?.name || 'Cliente',
+        email: customerData?.email || 'cliente@email.com',
+        phone: customerData?.phone || '(00) 00000-0000',
+        document: customerData?.document || '000.000.000-00',
+      },
+      products,
+    })
+  }
+
+  // Create PIX payment on mount — only if we don't have cached data
   useEffect(() => {
     let cancelled = false
+
+    // If we already have pixData from session, just resume polling
+    if (pixData && pixData.transactionId) {
+      setLoading(false)
+      startPolling(pixData.transactionId)
+      return () => {
+        cancelled = true
+        if (pollingRef.current) clearInterval(pollingRef.current)
+      }
+    }
 
     async function initPayment() {
       try {
         setLoading(true)
         setError(null)
 
-        const orderId = generateOrderId()
-        const products = cart.map((item) => ({
-          id: String(item.id),
-          name: item.name,
-          quantity: item.qty,
-          price: item.unitPrice,
-        }))
-
-        const result = await createPixPayment({
-          identifier: orderId,
-          amount: total,
-          client: {
-            name: customerData?.name || 'Cliente',
-            email: customerData?.email || 'cliente@email.com',
-            phone: customerData?.phone || '(00) 00000-0000',
-            document: customerData?.document || '000.000.000-00',
-          },
-          products,
-        })
+        const result = await createPix(total)
 
         if (!cancelled) {
           setPixData(result)
           setLoading(false)
-          // Start polling for payment confirmation
           startPolling(result.transactionId)
         }
       } catch (err) {
@@ -1582,7 +1619,6 @@ function PixPage({ total, customerData, cart, onBack }) {
           console.warn('SigiloPay API not available, using demo mode:', err.message)
           setPixData(null)
           setLoading(false)
-          // In demo mode, no polling
         }
       }
     }
@@ -1595,8 +1631,36 @@ function PixPage({ total, customerData, cart, onBack }) {
     }
   }, [])
 
-  // Poll for payment status (fallback to webhooks in production)
+  // Apply discount: generate a NEW PIX with the discounted amount
+  async function applyDiscount() {
+    setCreatingDiscount(true)
+    setDiscountApplied(true)
+
+    try {
+      // Stop old polling
+      if (pollingRef.current) clearInterval(pollingRef.current)
+
+      const newAmount = +(total * 0.95).toFixed(2)
+      const result = await createPix(newAmount)
+
+      setPixData(result)
+      startPolling(result.transactionId)
+
+      // Reset timer for the new PIX
+      const newExpiry = Date.now() + 15 * 60 * 1000
+      saveSession('lb_pixExpiry', newExpiry)
+      setTimeLeft(15 * 60)
+    } catch (err) {
+      console.error('Failed to create discounted PIX:', err)
+      setError('Erro ao gerar PIX com desconto. Use o código acima.')
+    } finally {
+      setCreatingDiscount(false)
+    }
+  }
+
+  // Poll for payment status
   function startPolling(transactionId) {
+    if (pollingRef.current) clearInterval(pollingRef.current)
     pollingRef.current = setInterval(async () => {
       try {
         const result = await checkPixStatus(transactionId)
@@ -1610,7 +1674,7 @@ function PixPage({ total, customerData, cart, onBack }) {
       } catch {
         // Silently continue polling
       }
-    }, 5000) // Check every 5 seconds
+    }, 5000)
   }
 
   // Timer countdown
@@ -1723,13 +1787,17 @@ function PixPage({ total, customerData, cart, onBack }) {
             <div className="space-y-3">
               <button
                 onClick={() => {
-                  setDiscountApplied(true)
                   setShowExitModal(false)
+                  applyDiscount()
                 }}
-                className="w-full h-12 bg-green-500 hover:bg-green-600 text-white font-bold rounded-xl transition-all inline-flex items-center justify-center gap-2 text-base"
+                disabled={creatingDiscount}
+                className="w-full h-12 bg-green-500 hover:bg-green-600 text-white font-bold rounded-xl transition-all inline-flex items-center justify-center gap-2 text-base disabled:opacity-60"
               >
-                <Gift className="h-5 w-5" />
-                QUERO MEU DESCONTO!
+                {creatingDiscount ? (
+                  <><Loader2 className="h-5 w-5 animate-spin" /> Gerando PIX com desconto...</>
+                ) : (
+                  <><Gift className="h-5 w-5" /> QUERO MEU DESCONTO!</>
+                )}
               </button>
               <button
                 onClick={() => {
@@ -2003,6 +2071,11 @@ export default function App() {
           customerData={customerData}
           cart={cart}
           onBack={() => {
+            // Clear PIX session data
+            sessionStorage.removeItem('lb_pixData')
+            sessionStorage.removeItem('lb_paymentStatus')
+            sessionStorage.removeItem('lb_pixExpiry')
+            sessionStorage.removeItem('lb_discountApplied')
             setPage('home')
             setCart([])
             setCustomerData(null)
