@@ -1634,15 +1634,17 @@ function PixPage({ total, customerData, cart, onBack }) {
   // Apply discount: generate a NEW PIX with the discounted amount
   async function applyDiscount() {
     setCreatingDiscount(true)
-    setDiscountApplied(true)
+    setError(null)
 
     try {
-      // Stop old polling
+      // Stop old polling while we create the new PIX
       if (pollingRef.current) clearInterval(pollingRef.current)
 
       const newAmount = +(total * 0.95).toFixed(2)
       const result = await createPix(newAmount)
 
+      // Only mark discount as applied AFTER the new PIX is created successfully
+      setDiscountApplied(true)
       setPixData(result)
       startPolling(result.transactionId)
 
@@ -1652,7 +1654,12 @@ function PixPage({ total, customerData, cart, onBack }) {
       setTimeLeft(15 * 60)
     } catch (err) {
       console.error('Failed to create discounted PIX:', err)
-      setError('Erro ao gerar PIX com desconto. Use o código acima.')
+      // Rollback — keep the original PIX, resume its polling
+      setDiscountApplied(false)
+      if (pixData?.transactionId) {
+        startPolling(pixData.transactionId)
+      }
+      setError('Não foi possível aplicar o desconto agora. Tente novamente ou pague com o valor atual.')
     } finally {
       setCreatingDiscount(false)
     }
@@ -1920,9 +1927,23 @@ function PixPage({ total, customerData, cart, onBack }) {
           </p>
         </div>
 
+        {/* Generating discount overlay */}
+        {creatingDiscount && (
+          <div className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-center justify-center gap-3">
+            <Loader2 className="h-5 w-5 text-green-600 animate-spin" />
+            <p className="text-sm text-green-700 font-medium">Gerando novo PIX com 5% de desconto...</p>
+          </div>
+        )}
+
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+          <div className="bg-red-50 border border-red-200 rounded-xl p-4 space-y-3">
             <p className="text-sm text-red-600 text-center">{error}</p>
+            <button
+              onClick={() => { setError(null); applyDiscount() }}
+              className="w-full h-10 text-sm font-medium bg-red-100 hover:bg-red-200 text-red-700 rounded-lg transition-colors"
+            >
+              Tentar novamente
+            </button>
           </div>
         )}
       </div>
