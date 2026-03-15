@@ -794,7 +794,9 @@ function CheckoutPage({ cart, onBack, onConfirm }) {
   const subtotal = cart.reduce((sum, item) => sum + item.totalPrice, 0)
   const [form, setForm] = useState({
     name: '',
+    email: '',
     phone: '',
+    document: '',
     cep: '',
     address: '',
     number: '',
@@ -827,7 +829,25 @@ function CheckoutPage({ cart, onBack, onConfirm }) {
     setForm((f) => ({ ...f, phone: formatted }))
   }
 
-  const isValid = form.name && form.phone.replace(/\D/g, '').length >= 10 && form.cep.replace(/\D/g, '').length === 8
+  function handleDocumentChange(v) {
+    const clean = v.replace(/\D/g, '').slice(0, 11)
+    let formatted = clean
+    if (clean.length > 9) {
+      formatted = `${clean.slice(0, 3)}.${clean.slice(3, 6)}.${clean.slice(6, 9)}-${clean.slice(9)}`
+    } else if (clean.length > 6) {
+      formatted = `${clean.slice(0, 3)}.${clean.slice(3, 6)}.${clean.slice(6)}`
+    } else if (clean.length > 3) {
+      formatted = `${clean.slice(0, 3)}.${clean.slice(3)}`
+    }
+    setForm((f) => ({ ...f, document: formatted }))
+  }
+
+  const isValid =
+    form.name &&
+    form.email &&
+    form.phone.replace(/\D/g, '').length >= 10 &&
+    form.document.replace(/\D/g, '').length === 11 &&
+    form.cep.replace(/\D/g, '').length === 8
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -880,6 +900,32 @@ function CheckoutPage({ cart, onBack, onConfirm }) {
               placeholder="Nome Completo"
               value={form.name}
               onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            />
+          </div>
+
+          <div>
+            <label className="text-sm font-medium leading-none block mb-2">
+              E-mail
+            </label>
+            <input
+              type="email"
+              placeholder="seu@email.com"
+              value={form.email}
+              onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            />
+          </div>
+
+          <div>
+            <label className="text-sm font-medium leading-none block mb-2">
+              CPF
+            </label>
+            <input
+              type="text"
+              placeholder="000.000.000-00"
+              value={form.document}
+              onChange={(e) => handleDocumentChange(e.target.value)}
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             />
           </div>
