@@ -9,7 +9,14 @@
       "Bash(command -v npm)",
       "Bash(git rm:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(git config:*)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" https://api.github.com)",
+      "mcp__399d3585-3707-434b-a2fc-d17b1e8524c7__deploy_to_vercel",
+      "Bash(\"/c/Program Files/nodejs/npm.cmd\" install -g vercel)",
+      "Bash(ls /c/Users/hoffmax/AppData/Roaming/npm/vercel*)",
+      "Bash(\"/c/Users/hoffmax/AppData/Roaming/npm/vercel.cmd\" whoami:*)",
+      "mcp__399d3585-3707-434b-a2fc-d17b1e8524c7__list_teams"
     ]
   }
 }
