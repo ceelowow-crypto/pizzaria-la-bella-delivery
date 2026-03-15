@@ -1455,19 +1455,51 @@ function CheckoutPage({ cart, onBack, onConfirm }) {
         </div>
 
         {/* Trust badges */}
-        <div className="space-y-4">
-          <div className="bg-accent rounded-xl p-4 space-y-3">
+        <div className="space-y-3">
+          {/* Reclame Aqui */}
+          <div className="bg-accent rounded-xl p-4">
             <div className="flex items-center gap-3">
-              <div className="flex-shrink-0 w-10 h-10 bg-green-500 rounded-full flex items-center justify-center text-white font-bold text-xs">
+              <div className="flex-shrink-0 w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center text-white font-bold text-xs">
                 RA
               </div>
               <div className="flex-1">
-                <h3 className="font-bold">Reclame Aqui</h3>
-                <p className="text-sm text-muted-foreground">
+                <h3 className="font-bold text-sm">Reclame Aqui</h3>
+                <p className="text-xs text-muted-foreground">
                   O consumidor avaliou o atendimento dessa empresa como{' '}
                   <span className="font-bold text-foreground">ÓTIMO</span>. A nota média
                   nos últimos 6 meses é{' '}
                   <span className="font-bold text-foreground">9.9/10</span>.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* iFood Parceiros */}
+          <div className="bg-accent rounded-xl p-4">
+            <div className="flex items-center gap-3">
+              <div className="flex-shrink-0 w-10 h-10 bg-red-500 rounded-lg flex items-center justify-center text-white font-bold text-[10px] leading-tight text-center">
+                ifood
+              </div>
+              <div className="flex-1">
+                <h3 className="font-bold text-sm">Ifood Parceiros</h3>
+                <p className="text-xs text-muted-foreground">
+                  Empresa parceira verificada{' '}
+                  <span className="text-green-500">✓</span>
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* ANVISA */}
+          <div className="bg-accent rounded-xl p-4">
+            <div className="flex items-center gap-3">
+              <div className="flex-shrink-0 w-10 h-10 bg-blue-900 rounded-lg flex items-center justify-center text-white font-bold text-[8px] leading-tight text-center">
+                ANVISA
+              </div>
+              <div className="flex-1">
+                <h3 className="font-bold text-sm">ANVISA</h3>
+                <p className="text-xs text-muted-foreground">
+                  Essa empresa possui o selo de autorização para funcionamento ANVISA.
                 </p>
               </div>
             </div>
