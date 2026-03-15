@@ -20,6 +20,9 @@ import {
   QrCode,
   Loader2,
   CheckCircle2,
+  X,
+  Gift,
+  AlertTriangle,
 } from 'lucide-react'
 import { createPixPayment, checkPixStatus, generateOrderId } from './api.js'
 
@@ -401,7 +404,7 @@ const PRODUCTS = [
     originalPrice: null,
     category: 'Pizzas Doces',
     isPromo: false,
-    image: 'https://images.unsplash.com/photo-1541745537411-b8d1fae3c4b4?w=200&h=200&fit=crop',
+    image: 'https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=200&h=200&fit=crop',
     options: [PIZZA_BORDA_OPTIONS],
   },
   {
@@ -434,7 +437,7 @@ const PRODUCTS = [
     originalPrice: null,
     category: 'Pizzas Doces',
     isPromo: false,
-    image: 'https://images.unsplash.com/photo-1541745537411-b8d1fae3c4b4?w=200&h=200&fit=crop',
+    image: 'https://images.unsplash.com/photo-1499636136210-6f4ee915583e?w=200&h=200&fit=crop',
     options: [PIZZA_BORDA_OPTIONS],
   },
   {
@@ -482,7 +485,7 @@ const PRODUCTS = [
     originalPrice: null,
     category: 'Bebidas',
     isPromo: false,
-    image: 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=200&h=200&fit=crop',
+    image: 'https://images.unsplash.com/photo-1581636625402-29b2a704ef13?w=200&h=200&fit=crop',
     options: [
       {
         title: 'Sabor',
@@ -1517,6 +1520,21 @@ function PixPage({ total, customerData, cart, onBack }) {
   const [error, setError] = useState(null)
   const [paymentStatus, setPaymentStatus] = useState('PENDING') // PENDING | COMPLETED
   const pollingRef = useRef(null)
+  const [showExitModal, setShowExitModal] = useState(false)
+  const [discountApplied, setDiscountApplied] = useState(false)
+  const discountedTotal = discountApplied ? total * 0.95 : total
+
+  // Prevent accidental page close/refresh
+  useEffect(() => {
+    function handleBeforeUnload(e) {
+      if (paymentStatus !== 'COMPLETED') {
+        e.preventDefault()
+        e.returnValue = ''
+      }
+    }
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+  }, [paymentStatus])
 
   // Fallback PIX code for demo/when API is not available
   const fallbackPixCode =
@@ -1613,7 +1631,12 @@ function PixPage({ total, customerData, cart, onBack }) {
   const seconds = timeLeft % 60
 
   const pixCode = pixData?.pix?.code || fallbackPixCode
-  const qrCodeImage = pixData?.pix?.base64 || pixData?.pix?.image || null
+  const rawBase64 = pixData?.pix?.base64 || ''
+  const qrCodeImage = rawBase64
+    ? rawBase64.startsWith('data:')
+      ? rawBase64
+      : `data:image/png;base64,${rawBase64}`
+    : pixData?.pix?.image || null
 
   function handleCopy() {
     navigator.clipboard.writeText(pixCode).catch(() => {})
@@ -1661,10 +1684,66 @@ function PixPage({ total, customerData, cart, onBack }) {
       {/* Header */}
       <div className="sticky top-0 z-40 bg-background border-b border-border">
         <div className="max-w-md mx-auto px-3 sm:px-4 py-3 flex items-center gap-3">
-          <BackButton onClick={onBack} />
+          <BackButton onClick={() => setShowExitModal(true)} />
           <h1 className="text-lg sm:text-xl font-bold">Pagamento PIX</h1>
         </div>
       </div>
+
+      {/* Exit Modal with 5% discount offer */}
+      {showExitModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 space-y-5 animate-in fade-in zoom-in">
+            <div className="flex justify-end">
+              <button onClick={() => setShowExitModal(false)} className="text-muted-foreground hover:text-foreground">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="text-center space-y-3">
+              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+                <Gift className="h-8 w-8 text-primary" />
+              </div>
+              <h2 className="text-xl font-bold text-foreground">Espere! Não vá embora! 🍕</h2>
+              <p className="text-muted-foreground text-sm">
+                Temos uma oferta especial para você finalizar seu pedido agora:
+              </p>
+            </div>
+
+            <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-300 rounded-xl p-4 text-center space-y-2">
+              <p className="text-2xl font-black text-green-600">5% OFF</p>
+              <p className="text-sm text-green-700 font-medium">
+                Pague agora e economize <span className="font-bold">R$ {fmt(total * 0.05)}</span>!
+              </p>
+              <p className="text-xs text-green-600">
+                De <span className="line-through">R$ {fmt(total)}</span> por apenas{' '}
+                <span className="font-bold text-lg">R$ {fmt(total * 0.95)}</span>
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              <button
+                onClick={() => {
+                  setDiscountApplied(true)
+                  setShowExitModal(false)
+                }}
+                className="w-full h-12 bg-green-500 hover:bg-green-600 text-white font-bold rounded-xl transition-all inline-flex items-center justify-center gap-2 text-base"
+              >
+                <Gift className="h-5 w-5" />
+                QUERO MEU DESCONTO!
+              </button>
+              <button
+                onClick={() => {
+                  setShowExitModal(false)
+                  onBack()
+                }}
+                className="w-full h-10 text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Não, quero sair mesmo assim
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="max-w-md mx-auto px-3 sm:px-4 py-6 space-y-6">
         {/* Timer */}
@@ -1683,7 +1762,17 @@ function PixPage({ total, customerData, cart, onBack }) {
         {/* Amount */}
         <div className="text-center">
           <p className="text-sm text-muted-foreground">Valor a pagar</p>
-          <p className="text-3xl font-bold text-primary">R$ {fmt(total)}</p>
+          {discountApplied ? (
+            <div className="space-y-1">
+              <p className="text-lg text-muted-foreground line-through">R$ {fmt(total)}</p>
+              <p className="text-3xl font-bold text-green-500">R$ {fmt(discountedTotal)}</p>
+              <span className="inline-block bg-green-100 text-green-700 text-xs font-bold px-3 py-1 rounded-full">
+                🎉 5% OFF APLICADO!
+              </span>
+            </div>
+          ) : (
+            <p className="text-3xl font-bold text-primary">R$ {fmt(total)}</p>
+          )}
         </div>
 
         {/* QR Code */}
@@ -1775,12 +1864,38 @@ function PixPage({ total, customerData, cart, onBack }) {
 
 // ─── App Router ───────────────────────────────────────────────────────────────
 
+// ─── Session persistence helpers ──────────────────────────────────────────────
+
+function loadSession(key, fallback) {
+  try {
+    const raw = sessionStorage.getItem(key)
+    return raw ? JSON.parse(raw) : fallback
+  } catch {
+    return fallback
+  }
+}
+
+function saveSession(key, value) {
+  try {
+    sessionStorage.setItem(key, JSON.stringify(value))
+  } catch {
+    // quota exceeded — ignore
+  }
+}
+
 export default function App() {
-  const [page, setPage] = useState('home') // home | product | cart | checkout | pix
-  const [selectedProduct, setSelectedProduct] = useState(null)
-  const [cart, setCart] = useState([])
-  const [pixTotal, setPixTotal] = useState(0)
-  const [customerData, setCustomerData] = useState(null)
+  const [page, setPage] = useState(() => loadSession('lb_page', 'home'))
+  const [selectedProduct, setSelectedProduct] = useState(() => loadSession('lb_selectedProduct', null))
+  const [cart, setCart] = useState(() => loadSession('lb_cart', []))
+  const [pixTotal, setPixTotal] = useState(() => loadSession('lb_pixTotal', 0))
+  const [customerData, setCustomerData] = useState(() => loadSession('lb_customerData', null))
+
+  // Persist all critical state to sessionStorage
+  useEffect(() => { saveSession('lb_page', page) }, [page])
+  useEffect(() => { saveSession('lb_selectedProduct', selectedProduct) }, [selectedProduct])
+  useEffect(() => { saveSession('lb_cart', cart) }, [cart])
+  useEffect(() => { saveSession('lb_pixTotal', pixTotal) }, [pixTotal])
+  useEffect(() => { saveSession('lb_customerData', customerData) }, [customerData])
 
   const cartCount = cart.reduce((sum, item) => sum + item.qty, 0)
 
