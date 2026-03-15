@@ -46,7 +46,7 @@ const PRODUCTS = [
   // ══════════════════════════════════════════════════════════════════════════
   {
     id: 1,
-    name: 'Combo La Bella Individual',
+    name: 'Combo Individual',
     description: '1 Pizza Broto Tradicional (à sua escolha) + Esfiha Doce + Refrigerante (Lata 350 ml)',
     price: 27.0,
     originalPrice: 46.0,
@@ -623,9 +623,9 @@ function HomePage({ onViewProduct, onAddToCart, cart }) {
       {/* Hero */}
       <div className="relative w-full h-48 sm:h-56 md:h-64 overflow-hidden">
         <img
-          src="https://images.unsplash.com/photo-1571997478779-2adcbbe9ab2f?w=800&h=400&fit=crop"
-          alt="Pizzaria La Bella"
-          className="w-full h-full object-cover"
+          src="/logo.jpg"
+          alt="Pizzaria Pães e Vinhos"
+          className="w-full h-full object-contain bg-white"
         />
         <div className="absolute inset-0 bg-black/20" />
         <div
@@ -640,12 +640,12 @@ function HomePage({ onViewProduct, onAddToCart, cart }) {
         {/* Store Info */}
         <div className="py-4 space-y-3">
           <div className="flex items-start gap-3">
-            <div className="w-16 h-16 bg-card rounded-lg border-2 border-border flex items-center justify-center overflow-hidden flex-shrink-0">
-              <span className="text-3xl">🍕</span>
+            <div className="w-16 h-16 bg-white rounded-lg border-2 border-border flex items-center justify-center overflow-hidden flex-shrink-0">
+              <img src="/logo.jpg" alt="Logo" className="w-full h-full object-cover" />
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-2">
-                <h1 className="text-xl font-bold text-foreground">Pizzaria La Bella</h1>
+                <h1 className="text-xl font-bold text-foreground">Pizzaria Pães e Vinhos</h1>
                 <CircleCheck className="h-5 w-5 text-blue-500" />
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1 flex-wrap">
@@ -1563,7 +1563,7 @@ function PixPage({ total, customerData, cart, onBack }) {
   const fallbackPixCode =
     '00020126580014br.gov.bcb.pix0136a1b2c3d4-e5f6-7890-abcd-ef1234567890520400005303986540' +
     activeTotal.toFixed(2) +
-    '5802BR5925PIZZARIA LA BELLA LTDA6009SAO PAULO62070503***6304'
+    '5802BR5930PIZZARIA PAES E VINHOS LTDA6009SAO PAULO62070503***6304'
 
   // Helper to create a PIX payment
   async function createPix(amount) {
