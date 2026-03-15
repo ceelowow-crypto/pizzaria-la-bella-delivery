@@ -641,7 +641,7 @@ function HomePage({ onViewProduct, onAddToCart, cart }) {
         <div className="py-4 space-y-3">
           <div className="flex items-start gap-3">
             <div className="w-16 h-16 bg-white rounded-lg border-2 border-border flex items-center justify-center overflow-hidden flex-shrink-0">
-              <img src="/logo.jpg" alt="Logo" className="w-full h-full object-cover" />
+              <img src="/logo-icon.jpg" alt="Logo" className="w-full h-full object-contain" />
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-2">
