@@ -1459,9 +1459,7 @@ function CheckoutPage({ cart, onBack, onConfirm }) {
           {/* Reclame Aqui */}
           <div className="bg-accent rounded-xl p-4">
             <div className="flex items-center gap-3">
-              <div className="flex-shrink-0 w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center text-white font-bold text-xs">
-                RA
-              </div>
+              <img src="https://i.postimg.cc/jKbTSRLr/unnamed.png" alt="Reclame Aqui" className="flex-shrink-0 w-10 h-10 rounded-lg object-contain" />
               <div className="flex-1">
                 <h3 className="font-bold text-sm">Reclame Aqui</h3>
                 <p className="text-xs text-muted-foreground">
@@ -1477,9 +1475,7 @@ function CheckoutPage({ cart, onBack, onConfirm }) {
           {/* iFood Parceiros */}
           <div className="bg-accent rounded-xl p-4">
             <div className="flex items-center gap-3">
-              <div className="flex-shrink-0 w-10 h-10 bg-red-500 rounded-lg flex items-center justify-center text-white font-bold text-[10px] leading-tight text-center">
-                ifood
-              </div>
+              <img src="https://i.postimg.cc/dvkCwmZP/KSt-Csh2t-Ks-KCF5da-Rr-OAWdn-MU4n83Hbnn-O5h-Xz-J7.jpg" alt="iFood Parceiros" className="flex-shrink-0 w-10 h-10 rounded-lg object-contain" />
               <div className="flex-1">
                 <h3 className="font-bold text-sm">Ifood Parceiros</h3>
                 <p className="text-xs text-muted-foreground">
@@ -1493,9 +1489,7 @@ function CheckoutPage({ cart, onBack, onConfirm }) {
           {/* ANVISA */}
           <div className="bg-accent rounded-xl p-4">
             <div className="flex items-center gap-3">
-              <div className="flex-shrink-0 w-10 h-10 bg-blue-900 rounded-lg flex items-center justify-center text-white font-bold text-[8px] leading-tight text-center">
-                ANVISA
-              </div>
+              <img src="https://i.postimg.cc/L92kQq6t/i-Bmt-S32fl-P0Ruibmk7H1L9r-Pavkk-Z07Li-Yb-UNWce.png" alt="ANVISA" className="flex-shrink-0 w-10 h-10 rounded-lg object-contain" />
               <div className="flex-1">
                 <h3 className="font-bold text-sm">ANVISA</h3>
                 <p className="text-xs text-muted-foreground">
