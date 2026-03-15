@@ -794,7 +794,6 @@ function CheckoutPage({ cart, onBack, onConfirm }) {
   const subtotal = cart.reduce((sum, item) => sum + item.totalPrice, 0)
   const [form, setForm] = useState({
     name: '',
-    email: '',
     phone: '',
     document: '',
     cep: '',
@@ -844,7 +843,6 @@ function CheckoutPage({ cart, onBack, onConfirm }) {
 
   const isValid =
     form.name &&
-    form.email &&
     form.phone.replace(/\D/g, '').length >= 10 &&
     form.document.replace(/\D/g, '').length === 11 &&
     form.cep.replace(/\D/g, '').length === 8
@@ -900,19 +898,6 @@ function CheckoutPage({ cart, onBack, onConfirm }) {
               placeholder="Nome Completo"
               value={form.name}
               onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-            />
-          </div>
-
-          <div>
-            <label className="text-sm font-medium leading-none block mb-2">
-              E-mail
-            </label>
-            <input
-              type="email"
-              placeholder="seu@email.com"
-              value={form.email}
-              onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             />
           </div>

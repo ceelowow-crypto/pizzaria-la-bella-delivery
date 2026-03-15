@@ -36,7 +36,7 @@ export default async function handler(req, res) {
         amount,
         client: {
           name: client.name,
-          email: client.email,
+          email: client.email || `${identifier}@pedido.delivery`,
           phone: client.phone,
           document: client.document,
         },
