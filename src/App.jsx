@@ -1700,6 +1700,13 @@ function PixPage({ total, customerData, cart, onBack }) {
         if (result.status === 'COMPLETED') {
           setPaymentStatus('COMPLETED')
           clearInterval(pollingRef.current)
+          // UTMify purchase event
+          try {
+            const totalValue = discountApplied ? pixData.amount : total
+            if (window.Utmify) {
+              window.Utmify.purchase(totalValue)
+            }
+          } catch (e) { /* silent */ }
         } else if (result.status === 'CANCELED') {
           setPaymentStatus('CANCELED')
           clearInterval(pollingRef.current)
